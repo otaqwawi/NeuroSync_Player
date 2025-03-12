@@ -1,0 +1,1 @@
+uvicorn chat_receiver:app --host 0.0.0.0 --port 6502 --reload
