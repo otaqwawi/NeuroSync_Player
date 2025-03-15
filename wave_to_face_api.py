@@ -18,7 +18,7 @@ from threading import Thread
 from livelink.connect.livelink_init import create_socket_connection, initialize_py_face
 from livelink.animations.default_animation import default_animation_loop, stop_default_animation
 from utils.audio_face_workers import process_wav_file
-from utils.files.file_utils import initialize_directories
+from utils.files.file_utils import initialize_directories, save_generated_data, load_facial_data_from_csv, GENERATED_DIR
 from utils.neurosync.neurosync_api_connect import send_audio_to_neurosync
 from utils.generated_runners import run_audio_animation_from_bytes
 
@@ -79,20 +79,50 @@ async def process_audio(request: AudioRequest):
         if generated_facial_data is None:
             raise HTTPException(status_code=400, detail="Failed to generate facial data")
 
-        # Create a background thread for animation
-        animation_thread = Thread(
-            target=run_audio_animation_from_bytes,
-            args=(
-                audio_bytes,
-                generated_facial_data,
-                py_face,
-                socket_connection,
-                default_animation_thread
-            )
-        )
-        animation_thread.start()
+        # Save the generated data and get unique ID
+        unique_id = save_generated_data(audio_bytes, generated_facial_data)
 
-        return {"status": "success", "message": "Audio processing started in background"}
+        return {"status": "success", "message": "Audio processing started in background", "id": unique_id[0]}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/play-animation/{animation_id}")
+async def play_animation(animation_id: str):
+    try:
+        # Get the file paths for the animation
+        audio_path = os.path.join(GENERATED_DIR, animation_id, 'audio.wav')
+        shapes_path = os.path.join(GENERATED_DIR, animation_id, 'shapes.csv')
+
+        if not os.path.exists(audio_path) or not os.path.exists(shapes_path):
+            raise HTTPException(status_code=404, detail="Animation data not found")
+
+        # Load the facial data
+        generated_facial_data = load_facial_data_from_csv(shapes_path)
+
+        # Read the audio file
+        with open(audio_path, 'rb') as f:
+            audio_bytes = f.read()
+
+        # Run the animation directly without creating a background thread
+        run_audio_animation_from_bytes(
+            audio_bytes,
+            generated_facial_data,
+            py_face,
+            socket_connection,
+            default_animation_thread
+        )
+
+        # Delete generated files after playback
+        try:
+            import shutil
+            animation_dir = os.path.join(GENERATED_DIR, animation_id)
+            if os.path.exists(animation_dir):
+                shutil.rmtree(animation_dir)
+        except Exception as e:
+            print(f"Warning: Failed to delete animation files: {e}")
+
+        return {"status": "success", "message": "Animation playback completed"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
