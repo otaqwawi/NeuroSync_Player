@@ -85,6 +85,7 @@ async def process_audio(request: AudioRequest):
         return {"status": "success", "message": "Audio processing started in background", "id": unique_id[0]}
 
     except Exception as e:
+        print(f"Error processing audio: {type(e).__name__} - {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/play-animation/{animation_id}")
