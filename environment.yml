@@ -1,0 +1,13 @@
+name: neurosync-player
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - fastapi>=0.112.2
+    - pygame>=2.6.1
+    - pandas>=2.2.3
+    - pydub>=0.25.1
+    - uvicorn>=0.32.1
