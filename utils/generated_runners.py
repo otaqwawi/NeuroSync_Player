@@ -103,14 +103,14 @@ def run_prepared_animation(audio_bytes, encoded_facial_data, py_face, socket_con
 
     start_event = Event()
 
-    # audio_thread = Thread(target=play_audio_from_memory, args=(audio_bytes, start_event))
+    audio_thread = Thread(target=play_audio_from_memory, args=(audio_bytes, start_event))
     data_thread = Thread(target=send_pre_encoded_data_to_unreal, args=(encoded_facial_data, start_event, 60, socket_connection))
 
-    # audio_thread.start()
+    audio_thread.start()
     data_thread.start()
     start_event.set()
     
-    # audio_thread.join()
+    audio_thread.join()
     data_thread.join()
 
     with queue_lock:
