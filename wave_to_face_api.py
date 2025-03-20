@@ -84,7 +84,7 @@ async def process_audio(request: AudioRequest):
         # Save the generated data and get unique ID
         unique_id = save_generated_data(audio_bytes, generated_facial_data)
 
-        return {"status": "success", "message": "Audio processing started in background", "id": unique_id[0]}
+        return {"status": "success", "message": "Generate blendshape completed", "id": unique_id[0]}
 
     except Exception as e:
         print(f"Error processing audio: {type(e).__name__} - {str(e)}")
