@@ -67,6 +67,8 @@ async def health_check():
 @app.post("/process-audio")
 async def process_audio(request: AudioRequest):
     try:
+        print('Received audio request')
+        
         # Decode base64 audio data
         audio_bytes = base64.b64decode(request.audio_base64)
         
@@ -91,6 +93,7 @@ async def process_audio(request: AudioRequest):
 @app.post("/play-animation/{animation_id}")
 async def play_animation(animation_id: str):
     try:
+        print(f"Received request to play animation with ID: {animation_id}")
         # Get the file paths for the animation
         audio_path = os.path.join(GENERATED_DIR, animation_id, 'audio.wav')
         shapes_path = os.path.join(GENERATED_DIR, animation_id, 'shapes.csv')
